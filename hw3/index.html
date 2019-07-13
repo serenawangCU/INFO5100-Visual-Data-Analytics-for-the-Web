@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HW3</title>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<style type="text/css">
+		#p2
+			{ border:solid black 1px;}
+		
+	</style>
+</head>
+<body>
+	<ul>
+		<li>
+			A. It's sequential scale.
+			It's not an effective color scale. Because coloring to saturated hue from black has less effective. It has almost no hue contrast and low brightness contrast.
+		</li>
+		<li>
+			B. I don't think this is an effective color scale for the task. There are three hues in the figure. It's difficult to judge midpoint. Sequential on either side and neutral middle will be much better.
+		</li>
+		<li>
+			C. Green and Red vision deficiencies would render this scale hard to interpret.
+		</li>
+		<li>
+			D. No. I think the rainbow scale has the misleading problem that abrupt changes in luminance and switching between different hues. It won't present continuous numeric county-by-county income data attribute clearly.
+		</li>
+	</ul>
+	<p>	Prob 2)	
+
+			<script>
+			//width and height
+			var w = 270; 
+			var h = 180;
+			
+			var dataset = [[10, 9.14], [8, 8.14], [13, 8.74], [9, 8.77], [11, 9.26], [14, 8.1], [6, 6.13], [4, 3.1], [12, 9.13], [7, 7.26], [5, 4.74]];
+          	
+          	var width = 280;
+          	var height = 200;
+           //	var padding = 20;
+            var xScale = d3.scaleLinear()
+						.domain([0,15])
+						.range([20,290]);
+			var yScale = d3.scaleLinear()
+						.domain([0,10])
+						.range([180,0]);
+			
+
+			function Xgridlines(){
+				return d3.axisBottom(xScale).ticks(15);
+			}
+			function Ygridlines(){
+				return d3.axisLeft(yScale).ticks(10);
+			}
+
+			let xAxis = d3.axisBottom(xScale).ticks(3).tickSize(0);
+			let yAxis = d3.axisLeft(yScale).ticks(2).tickSize(0);
+			
+
+			var svg = d3.select("body").append("svg")
+			    .attr("width", 300)
+			    .attr("height", 200);
+
+			svg.append("g")
+			    .attr("transform", "translate(0,180)")
+			    .call(Xgridlines().tickSize(-h).tickFormat(""));
+			svg.append("g")
+				.attr("transform", "translate(0,180)")
+			    .call(xAxis);
+
+			svg.append("g")
+			    .attr("transform", "translate(20,0)")
+			    .call(Ygridlines().tickSize(-w).tickFormat(""));
+			
+			svg.append("g")
+				.attr("transform", "translate(20,0)")
+			    .call(yAxis);
+			var x = 20; var y=180;
+
+      		var diff = 18;
+   			dataset.forEach(function(d,i) {
+    			svg.append("circle")
+    			   .attr("transform", "translate(" + x + "," + y+ ")")
+      			   .attr("cx",d[0]*diff)
+      			   .attr("cy",-d[1]*diff)
+          		   .attr("r",4)
+      			   .style("fill", "#5555F0")
+      			   .on("click",function(){
+      			   		d3.select(this)
+      			   		.style("fill","red");
+      			   });
+  			});
+  			
+			</script>
+
+		
+	</p>
+	
+	<p>
+		Prob 3)
+		<div id="p3b"></div>
+		<div id="p3d"></div>
+		<br/>
+		<div id="p3e"></div>
+		<br/>
+		<script>
+			
+			var diamondData;
+
+			d3.json("../diamonds.json").then(function(data){
+				
+				new Promise((_, reject) => reject(new Error('woops')))
+  										   .catch(error => { console.log('caught', error.message); });
+				diamondData = data;
+				console.log(diamondData.length);
+				console.log(typeof(diamondData));
+				
+				if(typeof(diamondData)!='undefined'){
+
+					var maxPrice=d3.max(diamondData,function(d){
+						return d.price;
+					});
+					var maxCarat = d3.max(diamondData,function(d){
+						return d.carat;
+					});
+					var maxColorQuality = d3.max(diamondData,function(d){
+						return d.color_rating;
+					});
+					var maxPricePerCarat = d3.max(diamondData,function(d){
+						return d.price/d.carat;
+					});
+					console.log("maxprice"+maxPrice);
+					//console.log(minPrice);
+					console.log("max Carat"+maxCarat);
+					//console.log(minCarat);
+				}
+        		//scale
+        		var padding = 5;
+			    var height = 400;
+			    var width = 400;
+			    let xMax = maxCarat;
+			    let yMax = maxPrice;
+
+			    var svg = d3.select("#p3b").append("svg").attr("width",400).attr("height",400);	
+				svg.attr("id","caratPrice")
+					.style("border", "1px solid black")
+        			.style("font-size", "18pt");
+			    //scale
+    			var xCaratScale = d3.scaleLinear().domain([0,maxCarat ]).range([40, 370]);
+    			var yPriceScale = d3.scaleLinear().domain([0,maxPrice ]).range([385, 5]);
+
+    			function Xgridlines(){
+					return d3.axisBottom(xCaratScale).ticks(3);
+				}
+				function Ygridlines(){
+					return d3.axisLeft(yPriceScale).ticks(18);
+				}
+    			//axis
+
+				let xAxis = d3.axisBottom(xCaratScale).ticks(3).tickSize(0);
+				let yAxis = d3.axisLeft(yPriceScale).ticks(15).tickSize(0);        		
+         		
+         		svg.append("g").attr("transform","translate(0,385)").call(xAxis);
+         		svg.append("g")
+         		   .attr("transform","translate(0,385)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(Xgridlines().tickSize(-380)
+         		   .tickFormat(""));
+         		svg.append("g").attr("transform", "translate(40,0)").call(yAxis);
+         		svg.append("g")
+         		   .attr("transform", "translate(40,0)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(Ygridlines().tickSize(-330)
+         		   .tickFormat(""));			
+			
+				
+      			var x = 40; var y=385;
+
+      			var diffX = 110;
+      			//*20/1000
+      			var diffY = 1/50;
+   				diamondData.forEach(function(d) {
+    				svg.append("circle")
+	    			   .attr("transform", "translate(" + x + "," + y+ ")")
+	      			   .attr("cx",Math.floor(d.carat*diffX))
+	      			   .attr("cy",Math.floor(-d.price*diffY))
+	          		   .attr("r",3)
+	          		   .attr("opacity",0.4)
+	      			   .style("fill", "#5555F0");
+  				});
+
+  				//***********************prob 3d**************//
+   				var svg = d3.select("#p3d").append("svg").attr("width",400).attr("height",400);	
+				// svg.attr("id","caratPrice")
+				// 	.style("border", "1px solid black")
+    //     			.style("font-size", "18pt");
+        		let xColorQuality = maxColorQuality;
+       
+    			var xColorScale = d3.scaleLinear().domain([1,7]).range([50, 350]);
+    			function Xgridlines1(){
+					return d3.axisBottom(xColorScale).ticks(8);
+				}
+				//maxPrice
+				var yPriceScale = d3.scaleLinear().domain([0, maxPrice]).range([390, 10]);
+				//var yPriceScale = d3.scaleLinear().domain([0,maxPrice ]).range([385, 5]);
+				//let xAxis1 = d3.axisBottom(xColorScale).ticks(6);
+				function Ygridlines1(){
+					return d3.axisLeft(yPriceScale).ticks(19);
+				}
+				//svg.append("g").attr("transform","translate(0,385)").call(xAxis1);
+         		svg.append("g")
+         		   //.attr("transform","translate(0,385)")
+         		   .attr("transform","translate(0,390)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(Xgridlines1().tickSize(-380)
+         		   //.call(Xgridlines1().tickSize(-380)
+         		   .tickFormat(""));
+         		//svg.append("g").attr("transform", "translate(40,0)").call(yAxis);
+         		svg.append("g")
+         		   //.attr("transform", "translate(80,0)")
+         		   .attr("transform", "translate(50,0)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(Ygridlines1().tickSize(-300)
+         		   //.call(Ygridlines1().tickSize(-240)
+         		   .tickFormat(""));
+         		//var diffX1 = 40;
+         		var diffX1 = 50;
+      			//*20/1000
+      			var diffY = 20/1000;
+	      		x=0;y=390;
+   				diamondData.forEach(function(d) {
+    				svg.append("circle")
+	    			   .attr("transform", "translate(" + x + "," + y+ ")")
+	      			   .attr("cx",Math.floor(d.color_rating*diffX1+Math.random()*10-5))
+	      			   .attr("cy",Math.floor(-d.price*diffY))
+	          		   .attr("r",3)
+	          		   .attr("opacity",0.3)
+	      			   .style("fill", "darkgreen");
+  				});
+
+
+
+  				//***********************prob 3e**************//
+   				var svg = d3.select("#p3e").append("svg").attr("width",400).attr("height",400);	
+				// svg.attr("id","caratPerPrice")
+				// 	.style("border", "1px solid black")
+    //     			.style("font-size", "18pt");
+        		//scale
+        		var maxPricePerCarat = maxPricePerCarat;
+        		console.log("price per carat:"+maxPricePerCarat);
+
+    			var xColorScale = d3.scaleLinear().domain([1,7]).range([50, 350]);
+        		//let xPriceCaratAxis = d3.axisBottom(xColorScale).ticks(8);
+        		//maxPricePerCarat
+        		var yPriceCaratScale=d3.scaleLinear().domain([0, maxPricePerCarat]).range([399, 0]);
+        		//y: show price per carat
+        		//y every 1000 per carat
+    			//var yPriceCaratAxis = d3.axisLeft(yPriceCaratScale).ticks(16);
+
+    			function XgridlinesPPC(){
+					return d3.axisBottom(xColorScale).ticks(8);
+				}
+				function YgridlinesPPC(){
+					return d3.axisLeft(yPriceCaratScale).ticks(16);
+				}
+				//svg.append("g").attr("transform","translate(0,325)").call(xPriceCaratAxis);
+         		svg.append("g")
+         		   .attr("transform","translate(0,400)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(XgridlinesPPC().tickSize(-400).tickFormat(""));
+         		//svg.append("g").attr("transform", "translate(40,0)").call(yPriceCaratAxis);
+         		svg.append("g")
+         		   .attr("transform", "translate(50,0)")
+         		   .style("fill","none")
+         		   .style("color","gray")
+         		   .call(YgridlinesPPC().tickSize(-300).tickFormat(""));
+         		var diffX1 = 50;
+      			//*25/1000。25*16=400
+      			var diffY = 25/1000;
+	      		
+   				diamondData.forEach(function(d) {
+    				svg.append("circle")
+	    			   .attr("transform", "translate(0 ,400)")
+	      			   .attr("cx",Math.floor(d.color_rating*diffX1+Math.random()*10-5))
+	      			   .attr("cy",Math.floor(-d.price/d.carat*diffY))
+	          		   .attr("r",3)
+	          		   .attr("opacity",0.3)
+	      			   .style("fill", "darkred");
+  				});
+
+
+		});
+		</script>
+		Why the chart might mislead a viewer into seeing a pattern that isn't present?<br/>
+		Because every diamond also has property of clarity and cut, however the chart doesn't show anything about it. The chart is quite misleading.
+		
+	</p>
+
+</body>
+</html>
