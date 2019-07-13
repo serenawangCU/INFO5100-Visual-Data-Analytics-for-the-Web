@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		HW5
+	</title>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<style type="text/css">
+	.district{
+		/*fill:black;*/
+		stroke-width:1;
+	    stroke:white;
+	}
+	.country{
+		fill: lightgrey;
+		stroke: none;
+	}
+	.outline{
+		fill: none;
+		stroke: black;
+		stroke-width: 1px;
+	}
+	.graticule{
+		fill: none;
+		stroke: lightgrey;
+	}
+</style>
+</head>
+<body>
+	<svg id = "mercator" width = "600" height = "400"></svg>
+	<svg id = "equalEarth" width = "600" height = "400"></svg>
+	<svg id = "conicEqualArea" width = "600" height = "400"></svg>
+	<p>
+	Prob 1: D)<br>
+	a) advantage of this Mercator projection:<br>
+	It has the good ability to represent lines of constant course.
+	It shows correct shapes.
+	<br>
+	b) potential draw-back:<br>
+	The latitude increases from the Equator to the poles. Mercator projection distorts the size of object.
+	<br>
+	c) specific example use case:<br>
+	It's suitable for marine navigation
+	</p>
+	<p>
+	Prob 1: E)<br>
+	a) advantage of this Equal Earth projection:<br>
+	Simple to implement and fast to evaluate. It shows most distances, sizes and shapes accurately.
+
+	<br>
+	b) potential draw-back:<br>
+	Distortion close to the poles is severe. The straight parallels imply severe angular distortion at the high latitudes toward the outer edges of the map. Projection only available for the sphere.
+	<br>
+	c) specific example use case:<br>
+	Looks good for world maps. Use for National Geographic Society
+
+	</p>
+	<p>
+	Prob 1: F)<br>
+	a) advantage of this Conic Equal Area projection:<br>
+	Shape along the standard parallel is accurate and minimally distorted in the region between the standard parallels and those regions just beyond. Distances are most accurate in the middle latitudes.Best results for regions predominantly east-west in orientation and located in the middle latitudes.
+	<br>
+	b) potential draw-back:<br>
+	Not suitable for mapping very large areas. Distortions increases away from central meridian.
+
+	<br>
+	c) specific example use case:<br>
+	Good for small regions or countries but not for continents.
+	Good projection for the conterminous United States.
+	</p>
+	<p>
+		
+		<script id = "prob1">
+			var svg0 = d3.select("#mercator");
+			var width = svg0.attr("width");
+  			var height = svg0.attr("height");
+  			var margin = { top: 20, right: 20, bottom: 20, left:20};
+  			var mapWidth = width - margin.left - margin.right;
+  			var mapHeight = height - margin.top - margin.bottom;
+  			var map = svg0.append("g")
+                  .attr("transform","translate("+margin.left+","+margin.top+")");
+
+            var requestData = async () => {
+
+			const world = await d3.json("world_110m.json");
+			console.log(world);
+			var countriesMesh = topojson.mesh(world, world.objects.countries);
+
+			var countries = topojson.feature(world, world.objects.countries);
+			var projection = d3.geoMercator().fitSize([mapWidth, mapHeight], countries);
+			var pathGen = d3.geoPath().projection(projection);
+
+			map.append("path") 
+			    .attr( "class", "graticule" )
+			    .attr( "d", pathGen( d3.geoGraticule10() ) );
+		
+
+			map.selectAll("path").data(countries.features)
+	        .enter()
+	        .append("path")
+	        .attr("class","country")
+	        .attr("d", pathGen);
+
+	        map.append("path")
+	      	.datum(countriesMesh)
+	      	.attr("class","outline")
+	      	.attr("d", pathGen);
+
+
+
+	      	const svg2 = d3.select("#equalEarth");
+	      	const map2 = svg2.append("g")
+                  .attr("transform","translate("+margin.left+","+margin.top+")");
+
+	      	var earthProjection = d3.geoEqualEarth().fitSize([mapWidth, mapHeight], countries);
+			var path = d3.geoPath().projection(earthProjection);
+			map2.append("path") 
+			    .attr( "class", "graticule" )
+			    .attr( "d", path( d3.geoGraticule10() ) );
+
+			map2.selectAll("path").data(countries.features)
+	        .enter()
+	        .append("path")
+	        .attr("class","country")
+	        .attr("d", path);
+	    
+	        map2.append("path")
+	      	.datum(countriesMesh)
+	      	.attr("class","outline")
+	      	.attr("d", path);
+
+	      	const svg3 = d3.select("#conicEqualArea");
+	      	const map3 = svg3.append("g")
+                  .attr("transform","translate("+margin.left+","+margin.top+")");
+
+	      	var conicProjection = d3.geoConicEqualArea().fitSize([mapWidth, mapHeight], countries);
+			var path = d3.geoPath().projection(conicProjection);
+			map3.append("path") 
+			    .attr( "class", "graticule" )
+			    .attr( "d", path( d3.geoGraticule10() ) );
+			
+
+			map3.selectAll("path").data(countries.features)
+	        .enter()
+	        .append("path")
+	        .attr("class","country")
+	        .attr("d", path);
+	        map3.append("path")
+	      	.datum(countriesMesh)
+	      	.attr("class","outline")
+	      	.attr("d", path);
+
+	      };
+	      requestData();
+
+
+
+		</script>
+	</p>
+	<p>
+		<svg id = "nysvg" width = "800" height = "700"></svg>
+		<svg id = "colorLegend" width = "600" height = "100"></svg>
+		<script id="prpb2">
+			var svg = d3.select("#nysvg");
+			var width = svg.attr("width");
+  			var height = svg.attr("height");
+  			var margin = { top: 20, right: 20, bottom: 20, left:20};
+  			var mapW = width - margin.left - margin.right;
+  			var mapH = height - margin.top - margin.bottom;
+  			var mapNY = svg.append("g")
+                  .attr("transform","translate("+margin.left+","+margin.top+")");
+
+            var requestData = async () => {
+
+			const nyd = await d3.json("new_york_districts.json");
+			
+			var districts = topojson.feature(nyd, nyd.objects.districts);
+			console.log(nyd);
+			var projectionNY = d3.geoMercator().fitSize([mapW, mapH], districts);
+			var pathNY = d3.geoPath().projection(projectionNY);
+
+
+			const legend = d3.select("#colorLegend");
+			const legendWidth = legend.attr("width");
+			const legendHeight = legend.attr("height");
+			const barHeight = 60;
+			const stepSize = 3;
+			
+
+			var scale = d3.scaleLinear()
+						  .domain([30,50,70])
+						  .range(["blue","lightgrey","red"])
+						  .clamp(true)
+						  .interpolate(d3.interpolateHcl);
+			
+		
+
+			mapNY.selectAll("path")
+			.data(districts.features)
+	        .enter()
+	        .append("path")
+	        .attr("class","district")
+	        .attr("d", pathNY);
+
+	        
+
+	        mapNY.selectAll(".district")
+	        .data(districts.features)
+	        .each(function(d,i){
+	        	d3.select(this).attr("fill",scale(d.properties.percent_trump))
+	        });
+	        
+
+	  		mapNY.append("circle")
+	  			 .attr("cx",projectionNY([-76.5,42.443333])[0])
+	  			 .attr("cy",projectionNY([-76.5,42.443333])[1])
+	  			 .attr("r",10)
+	  			 .attr("fill","white");
+			};
+			requestData();
+
+		</script>
+	</p>
+
+
+
+</body>
+</html>
