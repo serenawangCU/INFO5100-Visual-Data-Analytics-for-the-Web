@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<title>HW7</title>
+
+</head>
+<body>
+	<p>
+		<p>Problem 1)</p>
+		<canvas id="canvas1" width="320" height="320"></canvas>
+		<p>
+		<input id="labSlider" type="range" min="0" max="150" value="10" 
+    	onchange="fillCanvas(this.value);"/>
+    	</p>
+		<script>
+			var canvas = d3.select("#canvas1");
+			var context = canvas.node().getContext("2d");
+			var imgWidth = canvas.node().width;
+			var imgHeight = canvas.node().height;
+			var image = context.createImageData(imgWidth, imgHeight);
+			var pixels = image.data;
+			//console.log("pixels:"+pixels.length);
+
+			var scale = d3.scaleLinear().domain([0,imgWidth]).range([-160,160]);
+
+			function rgbAtLocation(lum, x, y) {
+				return d3.rgb(d3.lab(lum,scale(x),scale(y)));
+			}
+			fillCanvas(10);
+			d3.select("#labSlider").on("input",function(){
+				fillCanvas(this.value);
+			});
+
+			function fillCanvas(lum) {
+				//two loops
+				for (var x = 0; x < imgHeight; x++) {
+					for (var y = 0; y < imgWidth; y++) {
+						var rgb = rgbAtLocation(lum,x,y);
+						pixels[4*(y*imgWidth+x)] = rgb.r;
+						pixels[4*(y*imgWidth+x)+1] = rgb.g;
+						pixels[4*(y*imgWidth+x)+2] = rgb.b;
+						pixels[4*(y*imgWidth+x)+3] = 255;
+					}
+				}
+				context.putImageData(image,0,0);
+			}
+			
+		</script>
+	</p>
+	<p>
+		<p>Problem 2)</p>
+		<svg id="SVG" width="800" height="400"></svg>
+		<script>
+			var svg = d3.select("#SVG");
+			var width = svg.attr("width");
+			var height = svg.attr("height");
+			const layer = d3.select("#SVG").append("g");
+			const requestData = async() => {
+
+			var edges = await d3.csv("senate.109.rollcall.edges.csv");
+			var nodes = await d3.csv("senate.109.rollcall.nodes.csv");
+			const colorScale = d3.scaleOrdinal(d3.schemeSet1).domain(["Dem","Rep","Ind"]).range(["blue","red","yellow"]);
+
+			var links = [];
+		
+
+			edges.forEach( edge =>{
+				links.push({source:edge.source, target:edge.target});
+			});
+
+
+			//Set the domain and range: "Dem" maps to a blue color, "Rep" to red, and "Ind" to yellow.
+			var sim = d3.forceSimulation()
+						.nodes(nodes)
+						.force("links",d3.forceLink().links(links).id(d=>d.icpsr))
+						.force("repulse", d3.forceManyBody().strength(-60)) 
+						.force("y", d3.forceY(height/2.0).strength(0.1))
+						.force("x", d3.forceX( node => {
+							if (node.party == "Dem") {
+								return width * 0.25;
+							} else if (node.party == "Rep") {
+								return width * 0.75;
+							} else {
+								return width * 0.5;
+							}
+						}).strength(0.1))
+						.on("tick",render);
+
+
+			function render() {
+				// Edges
+			    let lines = layer.selectAll("line.link").data(links);
+			      lines.enter()
+			           .append("line")
+			           .attr("class","link")
+			           .attr("stroke","#333")
+			           .merge(lines)
+			           .attr("x1", d => d.source.x).attr("x2", d => d.target.x)   
+			           .attr("y1", d => d.source.y).attr("y2", d => d.target.y);
+
+			    
+			   // Nodes
+		      let circles = layer.selectAll("circle.node").data(nodes); 
+		      circles.enter()
+		             .append("circle")
+		             .attr("class","node")
+		             .attr("fill", d => colorScale(d.party))
+		             .attr("stroke", "#333")
+		             .attr("r", 6)
+		             .attr("cx", 0)
+		             .attr("cy", 0)
+		             .merge(circles)
+		             .attr("transform", d => "translate("+d.x+","+d.y+")");
+			}
+
+			//render();
+
+			}
+
+			requestData();
+		</script>
+	</p>
+
+</body>
+</html>
