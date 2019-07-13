@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HW1</title>
+</head>
+<body>
+	<p>
+		Prob 1:
+		<br/>
+		a) 
+		<b>Marks</b>:2D area shape of country
+		<br/><b>Channels</b>:color hue
+		<br/>b)
+		<b>Marks</b>:colored dots
+		<br/><b>Channels</b>:varying the vertical and horizontal position of the dots, color hue
+	</p>
+	<p>
+		Prob 2 valid JS types:
+		<br/>
+			b)string f)object g)number i)boolean l)function
+			
+		<script type="text/javascript">
+			[
+				'hello',//string
+				{'abc':123},//object
+				2,//number
+				2=='-2',//boolean
+				function myFunc(){//function
+				},
+				//unexpected type
+				null,//null
+				NaN,
+				1/'str',
+				1/0
+			].forEach((e)=>console.log(typeof(e)));
+			
+			
+		</script>
+	</p>
+	<p>
+		Prob 3 
+		<br/>
+		a) {netid:'jmr395'} 
+		<br/>The problem is syntax in key/value pairs in JSON object. There should be double quotes "" around key and value.
+		<br/>
+		Fixed version:
+		<script type="text/javascript">
+			console.log("Fixed version:");
+			console.log('{"netid":"jmr395"}');
+			JSON.parse('{"netid":"jmr395"}');
+		</script>
+		b) { /* choose one of these options */ "number": "INFO3300/CS3300/INFO5100" }
+		<br/>The problem is that JSON doesn't support comment line.
+		<br/>
+		Fixed version:
+		<script type="text/javascript">			
+			console.log(JSON.parse('{"number": "INFO3300/CS3300/INFO5100"}'));
+		</script>
+		<br/>
+		c) [3; 4.3; null];
+		<br/>The problem is there shouldn't be semicolon at the end and there should be comma instead of semicolon between the values
+		<br/>
+		Fixed version:[3,4.3,null]
+		<script type="text/javascript">
+			console.log(JSON.parse('[3,4.3,null]'));
+		</script>
+		<br/>
+		d) [ { "name": "DDWA", "number": 3300 } { "name": "Java", "number": 2110 } { "name":"Python", "number"; 1110 }
+		<br/>The problem is there is a right bracket at the begining, but no left bracket at the end. There is no comma between objects in the array. The last key and value pair object in the array is separated by ";" but it should be ":" and the value 1110 should have double quotes "".
+		<br/>
+		Fixed version:[{ "name": "DDWA", "number": 3300 } ,{ "name": "Java", "number": 2110 } ,{ "name":"Python", "number": "1110" }]
+		<script type="text/javascript">
+			console.log(JSON.parse('[{ "name": "DDWA", "number": 3300 } ,{ "name": "Java", "number": 2110 } ,{ "name":"Python", "number": "1110" }]'));
+		</script>
+
+	</p>
+	<p>
+		Prob 4
+		<br/>
+		<script type="text/javascript">
+		
+  		console.log(JSON.parse('[{"num": 1,"enrolled":true,"prerequisites": ["history","math2"]},{"num": 2, "enrolled":false,"prerequisites": ["math1","math2"] },{"num": 3,"enrolled":true,"prerequisites": [ "Algebra 1","Geometry"]}]'));
+		  
+		</script>
+	</p>
+	<p>
+		Prob 5
+		<br/>
+		According to course policy,we have weekly homework. We must submit our homework on time (before 11:59 PM Monday) via CMS. Late homework is not accepted. Two lowest homework can be discarded (project and exams not included). Work can be submitted via email only if having trouble with cms. Unreadable submitted files can be accepted through GitHub or email in rare circumstatnces. In this case, we should contact professor Jeff or TA as early as possible.
+	</p>
+
+</body>
+</html>
