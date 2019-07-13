@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		HW4
+	</title>
+	<style type="text/css">
+		.small{font:10px;}
+	</style>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<p> Prob 1)<br>
+		A. Data issues: In order to find bad data values, I cast some values from string to number.
+		'imdb_rating','length','rank_in_year' and 'year' should be in number type.
+		For 'worldwide_gross',I use regular expression which replaces '$' and ',' to empty string, and then I cast it to number.<br>
+		After I process the data type, I find some movies' 'rank_in_year' type is NaN, 'rating' type is NA, 'studio' is NA and 'title' is just random characters. <br>
+		In order to get rid of the bad values, I filter the data which type of 'rank_in_year' is NaN. Because I also find that if the type of 'rank_in_year' is NaN, it might also have bad values for other features.
+	</p>
+	<p>
+		B.Choice I made in designing the axes/scales:<br>
+		Year scale as x axis, I choose linear scale, because it makes more clearly to see. For x gridlines I choose to have tick on every year, because in that way it would be much clear and accurate to see which circle belongs to which year.<br>
+		Gross scale as y axis, I choose log scale, because in small x values (year around 1975) the gross is small and the y difference between different genres are not obvious. If the linear scale is used, the circle would cluster and it would be difficult to differentiate.
+		And also I choose circles with opacity=0.5 as overlapping circles would be easy observed.
+		I also calculate the radius of circle by r=d['imdb_rating']*1.5+0.5, because the minimum imdb_rating is 0 and max is 9, I make it *1.5+0.5 in order to include minimum rating movie and also to have more size difference as the rating grows.
+	</p>
+	<p>
+		D. benefits to users:As the dynamic, interactive and responsive data visualization improves user experience and prioritize what the user is seeing. The user can have the title information immediately.
+		<br>
+		ineffective places in chart:There are circles overlapping together and it's hard to accurately mouse over it. It's even confusing and hard to user who is trying to see the information as the smaller circle can be totally overlapped by bigger circle.
+	</p>
+
+	<svg id="svg" width="800" height="500">
+		<g id="circles" transform="translate(755,50)"> <!-- transform="translate(30,470)"> -->
+		<circle id="Crime" cx="12" cy="0" r="6" style="fill: rgb(132,118,155)"></circle>
+		<text x="0" y ="15" font-size="10">Crime</text>
+		<circle  id="Horror" cx="12" cy="25" r="6" style="fill: rgb(235,235,50)"></circle>
+		<text x="0" y ="40" font-size="10">Horror</text>
+		<circle id="Thriller" cx="12" cy="50" r="6" style="fill: rgb(104,0,225)"></circle>
+		<text x="0" y ="65" font-size="10">Thriller</text>
+		<circle id="Music" cx="12" cy="75" r="6" style="fill: rgb(0,0,255)"></circle>
+		<text x="0" y ="90" font-size="10">Music</text>
+		<circle id="Adventure" cx="12" cy="100" r="6" style="fill: rgb(225,25,225)"></circle>
+		<text x="0" y ="115" font-size="10">Adventure</text>
+		<circle id="War" cx="12" cy="125" r="6" style="fill: rgb(84,144,110)"></circle>
+		<text x="0" y ="140" font-size="10">War</text>
+		<circle id="Drama" cx="12" cy="150" r="6" style="fill: rgb(25,225,255)"></circle>
+		<text x="0" y ="165" font-size="10">Drama</text>
+		<circle id="Fantasy" cx="12" cy="175" r="6" style="fill: rgb(165,198,0)"></circle>
+		<text x="0" y ="190" font-size="10">Fantasy</text>
+		<circle id="Family" cx="12" cy="200" r="6" style="fill: rgb(0,198,72)"></circle>
+		<text x="0" y ="215" font-size="10">Family</text>
+		<circle id="Comedy" cx="12" cy="225" r="6" style="fill: rgb(206,116,0)"></circle>
+		<text x="0" y ="240" font-size="10">Comedy</text>
+		<circle id="Animation" cx="12" cy="250" r="6" style="fill: rgb(213,0,7)"></circle>
+		<text x="0" y ="265" font-size="10">Animation</text>
+		<circle id="Sport" cx="12" cy="275" r="6" style="fill: rgb(255,100,100)"></circle>
+		<text x="0" y ="290" font-size="10">Sport</text>
+        <circle id="History" cx="12" cy="300" r="6" style="fill: rgb(153, 255, 204)"></circle>
+        <text x="0" y ="315" font-size="10">History</text>
+        <circle id="Sci-Fi" cx="12" cy="325" r="6" style="fill: rgb(255, 255, 153)"></circle>
+        <text x="0" y ="340" font-size="10">Sci-Fi</text>
+        <circle id="Romance" cx="12" cy="350" r="6" style="fill: rgb(153, 204, 255)"></circle>
+        <text x="0" y ="365" font-size="10">Romance</text>
+        <circle id="Action" cx="12" cy="375" r="6" style="fill: rgb(255, 51, 204)"></circle>
+        <text x="0" y ="390" font-size="10">Action</text>
+
+
+		</g>
+	<script type="text/javascript">
+		var svg = d3.select("#svg");
+		//var svg = d3.select("body").append("svg").attr("width",800).attr("height",500);	
+			let margin = {top:20,right:60,bottom:40,left:30};
+			let width = svg.attr("width");
+			let height = svg.attr("height");
+			let chartWidth = width - margin.left - margin.right;
+			let chartHeight = height - margin.top - margin.bottom;
+		var blockbustersData;
+		d3.json("../blockbusters.json").then(function(data){
+			blockbustersData = data;
+			blockbustersData.forEach((d,i)=>{
+				d['rank_in_year'] = Number(d["rank_in_year"]);
+				d['rating']=d["rating"];
+				d['title']=d["title"];
+				d['gross']=Number(d["worldwide_gross"].replace(/[$,]/g,""));
+				d['length']=Number(d["length"]);
+				d['imdb_rating']=Number(d["imdb_rating"]);
+				d['studio']=d["studio"];
+				d['year']=Number(d["year"]);
+				d['Main_Genre']=d["Main_Genre"];
+			});
+
+			console.log(blockbustersData);
+			blockbustersData = blockbustersData.filter(d=>Boolean(d['rank_in_year']));
+			console.log(blockbustersData);	
+			// x: year, y:gross
+			const maxYear = d3.max(blockbustersData,d=>d['year']);
+			const minYear = d3.min(blockbustersData,d=>d['year']);
+			// x axis
+			const yearScale = d3.scaleLinear().domain([minYear,maxYear]).range([0,chartWidth]);
+			const maxGross = d3.max(blockbustersData,d=>d['gross']);
+			const minGross = d3.min(blockbustersData,d=>d['gross']);
+			//console.log("max gross:"+maxGross);
+
+			// y axis
+			const grossScale = d3.scaleLog().domain([minGross,maxGross]).range([chartHeight,0]);
+
+			// X axis
+	     
+	        let bottomAxis = d3.axisBottom(yearScale); 
+	      	svg.append("g").attr("class", "x axis") 
+	        	.attr("transform","translate("+ margin.left+","+ (chartHeight+margin.top)+")")
+	        	.call(bottomAxis);
+        	//Y axis
+			let leftAxis = d3.axisLeft(grossScale).ticks(10,d3.format("$.01s")).tickSize(0); 
+      		svg.append("g").attr("class", "y axis") 
+        		.attr("transform","translate("+ margin.left +","+ margin.top +")")
+        		.style("font-size","9px")
+        		.call(leftAxis);
+
+        	function Xgridlines(){
+					return d3.axisBottom(yearScale).ticks(48);
+			}
+			svg.append("g")
+         		   .attr("transform","translate("+ margin.left+","+ (chartHeight+margin.top)+")")
+         		   .style("fill","none")
+         		   .style("color","lightGray")
+         		   .call(Xgridlines().tickSize(-chartHeight)
+         		   .tickFormat(""));
+			function Ygridlines(){
+					return d3.axisLeft(grossScale).ticks(10);
+				}
+			svg.append("g")
+         		   .attr("transform","translate("+ margin.left +","+ margin.top +")")
+         		   .style("fill","none")
+         		   .style("color","lightGray")
+         		   .call(Ygridlines().tickSize(-chartWidth)
+         		   .tickFormat(""));
+
+
+
+        	var colors={
+        		'Crime':"rgb(132,118,155)",
+        		'Horror':"rgb(235,235,50)",
+        		'Thriller':"rgb(104,0,225)",
+        		'Music':"rgb(0,0,255)",
+        		'Adventure':"rgb(225,25,225)",
+        		'War':"rgb(84,144,110)",
+        		'Drama':"rgb(25,225,255)",
+        		'Fantasy':"rgb(165,198,0)",
+        		'Family':"rgb(0,198,72)",
+        		'Comedy':"rgb(206,116,0)",
+        		'Animation':"rgb(213,0,7)",
+        		'Sport':"rgb(255,100,100)",
+                'History':"rgb(153, 255, 204)",
+                'Sci-Fi':"rgb(255, 255, 153)",
+                'Romance':"rgb(153, 204, 255)",
+                'Action':"rgb(255, 51, 204)"
+        	};
+        	// var colors{
+        	// 	'Crime':'rgb(100,100,100)'
+        	// }
+
+        	const rateMin = d3.min(data, d => d['imdb_rating']);
+      		const rateMax = d3.max(data, d => d['imdb_rating']);
+      		//console.log("ratemin:"+rateMin);
+      		//console.log("ratemax:"+rateMax);
+      		const rateScale = d3.scaleLog()
+              .domain([rateMin*1.5+0.5, rateMax*1.5+0.5])
+              .range([5,15]); // circle size
+
+
+
+			let scatter = svg.append("g") 
+            .attr("transform","translate("+margin.left+","+margin.top+")");
+
+            blockbustersData.forEach((d,i)=>{
+
+            	let year = yearScale(d['year']);
+            	let gross = grossScale(d['gross']);
+            	let genre = d['Main_Genre'];
+                let title = d['title'];
+            	//let rate = rateScale(d['imdb_rating']);
+            	let r = d['imdb_rating']*1.5+0.5;
+            	let x = yearScale(d['year']);
+            	let y = grossScale(d['gross'])+20;
+                var id = document.getElementById(genre);
+              
+            	//Draw
+                let circle = scatter.append("circle")
+            		.attr("cx",year)
+            		.attr("cy",gross)
+            		.attr("r",r)
+            		.attr("fill",colors[genre])
+            		.attr("opacity",0.5);
+
+            	// add mouse over
+            	circle.on("mouseover",function(){
+            		d3.select(this)
+            			.transition().duration(200)
+            			.attr("r",r*1.3)	
+            			.style("stroke","#000");
+                   
+                    id.style.r="8";
+               
+            	
+
+            	//add title
+            	scatter.append("text")
+            	.attr("id","tt"+d['title'].replace(/[ & "_\-,.:'#!\?]/g,""))
+            	.attr("x",x)
+            	.attr("y",y)
+            	.text(d['title']);
+           		 });
+
+            	// mouse out
+            	circle.on("mouseout",function(){
+            		d3.select(this)
+            		.transition().duration(200)
+            		.attr("r",r)
+            		.style("stroke","none");
+
+            		d3.select("#" + "tt" + d['title'].replace(/[& "_\-,.:'#!\?]/g,"")).remove();
+                    id.style.r="6";
+            	});
+				
+		
+            });
+
+	 });
+
+
+  	</script>	
+  	
+</svg>
+<p>
+	Prob 2)
+	<br>
+	
+	
+	<svg id = "p2" height="400" width="400" >	
+
+	<g id="background" style="stroke: #000; stroke-width: 2px; fill: none;">
+<!--  Wall is 13 meters from pitcher. 20 meters tall and 4 meters thick. Target is between 8 meters and 18 meters from the wall. - -->
+	<path d="M75 350 H 140 V 250 H 160 V 350 H 350"/>
+<!-- 	 - 1 meter is 5px, so our pitcher is at (15,10) from the lower left corner -  -->
+	<circle id="pitcher" cx="75" cy="350" r="5" style="fill: #EEF"/>
+<!-- <circle id="pitcher" cx="75" cy="300" r="5" style="fill: #EEF"/> -->
+	<!-- Our target is between (40,10) and (50,10) from the lower left --->
+
+	<rect id="target" x="200" y="350" width="50" height="10" style="fill: #FDD"/>
+	
+	</g>  
+	<text id="t"  font-family="Arial" font-weight="100" font-size="8"></text> 
+	<text id="t1"  font-family="Arial" font-weight="100" font-size="8"></text> 
+	<text id="t2"  font-family="Arial" font-weight="100" font-size="8"></text> 
+	<script >
+		var svg2=d3.select("#p2");
+		 console.log("start");
+		
+		var xScale = d3.scaleLinear()
+						.domain([0,35])
+						.range([75,250]);
+		var yScale = d3.scaleLinear()
+						.domain([0,40])
+						.range([350,150]);
+						/*test scale*/
+		// var circle2 = svg2.append("circle").attr("id","pitcher")
+		// 			//.attr("transform","translate(75,350)")
+		// 			.attr("cx",xScale(0))
+		// 			//.attr("cx",xScale(75))
+		// 			//.attr("cy",yScale(350))
+		// 			.attr("cy",yScale(10))
+		// 			.attr("r",5);  
+        var data=[];
+        /**D. Display the trajectory for a toss thrown at 14 meters per second and a 75 degrees angle*/
+        trajectory(14,75/180*Math.PI,data);
+        
+
+        var data1=[];
+        trajectory(16.695,77.5/180*Math.PI,data1);
+
+        var data2=[];
+        trajectory(10,60/180*Math.PI,data2);
+        	
+        
+      
+       
+        /*
+        condition:Hit, 9s, 33.3m, so Vx=33.3/9=3.7m/s
+         
+          Vx=Vxo+ax
+		  Vy=Vyo+ay
+		  X=Xo+0.1*Vx
+		  Y=Yo+0.1*Vy
+		  Vx always maintain the same velocity as ax=0
+        */
+        function trajectory(initialVelocity,initialAngle,data){
+        	var ground =0;
+        	var x=0;
+        	var y=0;
+        	var xVelocity=initialVelocity*Math.cos(initialAngle);
+        	var yVelocity=initialVelocity*Math.sin(initialAngle);
+        	var xAcceleration=0;
+        	var yAcceleration=-3.71/10;
+
+        	var arr={
+        		ground:ground,
+        		x:x,
+        		y:y,
+        		xVelocity:xVelocity,
+        		yVelocity:yVelocity,
+        		xAcceleration:xAcceleration,
+        		yAcceleration:yAcceleration
+        	};
+        	data.push(arr);
+        		
+        		// vt+1/2att=30
+        		// v*4.5-0.5*3.71*0.1*4.5*4.5=30
+      
+        	var stop=false;
+        
+
+        	while(!stop){
+        		
+        		var arr={
+        		ground:ground,
+        		x:x,
+        		y:y,
+        		xVelocity:xVelocity,
+        		yVelocity:yVelocity,
+        		xAcceleration:xAcceleration,
+        		yAcceleration:yAcceleration
+        		};
+
+        		var n = data.length;
+        		yVelocity=data[n-1].yVelocity+yAcceleration;
+        		x=data[n-1].x+0.1*xVelocity;
+        		y=data[n-1].y+0.1*yVelocity;
+        	
+        		//ground=y;
+        		arr["ground"]=ground;
+        		arr["x"]=x;
+        		arr["y"]=y;
+        		arr["xVelocity"]=xVelocity;
+        		arr["yVelocity"]=yVelocity;
+        		arr["xAcceleration"]=xAcceleration;
+        		arr["yAcceleration"]=yAcceleration;
+        		
+        		if(y<=0) {
+        			console.log("y<=0:"+y);
+        			stop=true;
+        			arr["y"]=0;
+        			arr["ground"]=0;
+        		}
+        		else if(x>=13&&x<=17&&y<=20){
+        			stop=true;
+        			arr["ground"]=20;
+        		};
+        		data.push(arr);
+
+
+
+        	};
+
+        };
+     
+
+ 
+        plotTrajectory(data,"#abb043");
+        plotTrajectory(data1,"blue");
+        plotTrajectory(data2,"blue");
+        console.log("print:");
+        console.log("data:"+data);
+
+
+      	function plotTrajectory(data,color){
+      		console.log(color);
+
+      		console.log(data);
+
+      		let line=d3.line()
+      					.x(d=> xScale(d.x))
+      					.y(d=> yScale(d.y));
+
+ 
+	        svg2.append("path").datum(data).attr("d",line).style("stroke",color)
+	        .style("fill","none").attr("stroke-width",5).style("opacity",0.25);   				
+
+		 };
+		  /**add text*/
+	        
+	        var hitOrMiss;
+	        if(data[data.length-1].ground==0) hitOrMiss="HIT";
+	        else hitOrMiss="MISSed"
+	        
+	        var text = svg2.select("#t");
+	        var n = data.length;
+	        var xLength=data[n-1].x.toFixed(1);
+	        var time = (xLength/data[n-1].xVelocity).toFixed(1);
+	        var textLabel=text.attr("x",xScale(data[n-1].x+1))
+	        				.attr("y",yScale(data[n-1].y+1))
+	        				.text(hitOrMiss+","+time+"s,"+xLength+"m");
+
+	        var text1 = svg2.select("#t1");
+	        var n = data1.length;
+	        var xLength=data1[n-1].x.toFixed(1);
+	        var time = (xLength/data1[n-1].xVelocity).toFixed(1);
+	        var textLable1=text1.attr("x",xScale(data1[n-1].x+1))
+	        				.attr("y",yScale(data1[n-1].y+3))
+	        				.text(hitOrMiss+","+time+"s,"+xLength+"m");
+
+	        var text2 = svg2.select("#t2");
+	        var n = data2.length;
+	        var xLength=data2[n-1].x.toFixed(1);
+	        var time = (xLength/data2[n-1].xVelocity).toFixed(1);
+	        var textLable2=text2.attr("x",xScale(data2[n-1].x+1))
+	        				.attr("y",yScale(data2[n-1].y+1))
+	        				.text(hitOrMiss+","+time+"s,"+xLength+"m");
+
+
+	      /**prob E */
+	      var dataWind=[];
+	      trajectoryWithWind(13,80/180*Math.PI,1,dataWind);
+	      function  trajectoryWithWind(initialVelocity,initialAngle,windSpeed,data){
+	      	var ground =0;
+        	var x=0;
+        	var y=0;
+        	var xVelocity=initialVelocity*Math.cos(initialAngle);
+        	var yVelocity=initialVelocity*Math.sin(initialAngle);
+        	var xAcceleration=windSpeed/10;
+        	var yAcceleration=-3.71/10;
+
+        	var arr={
+        		ground:ground,
+        		x:x,
+        		y:y,
+        		xVelocity:xVelocity,
+        		yVelocity:yVelocity,
+        		xAcceleration:xAcceleration,
+        		yAcceleration:yAcceleration
+        	};
+        	data.push(arr);
+      
+        	var stop=false;
+        
+
+        	while(!stop){
+        		
+        		var arr={
+        		ground:ground,
+        		x:x,
+        		y:y,
+        		xVelocity:xVelocity,
+        		yVelocity:yVelocity,
+        		xAcceleration:xAcceleration,
+        		yAcceleration:yAcceleration
+        		};
+
+        		var n = data.length;
+        		yVelocity=data[n-1].yVelocity+yAcceleration;
+        		xVelocity=data[n-1].xVelocity+xAcceleration;
+        		x=data[n-1].x+0.1*xVelocity;
+        		y=data[n-1].y+0.1*yVelocity;
+        	
+        		ground=y;
+        		arr["ground"]=ground;
+        		arr["x"]=x;
+        		arr["y"]=y;
+        		arr["xVelocity"]=xVelocity;
+        		arr["yVelocity"]=yVelocity;
+        		arr["xAcceleration"]=xAcceleration;
+        		arr["yAcceleration"]=yAcceleration;
+        		
+        		if(y<=0) {
+        			console.log("y<=0:"+y);
+        			stop=true;
+        			arr["y"]=0;
+        			arr["ground"]=0;
+        		}
+        		else if(x>=13&&x<=17&&y<=20){
+        			stop=true;
+        			arr["ground"]=20;
+        		};
+        		data.push(arr);
+
+
+
+        	};
+
+        };
+
+	    
+	      plotTrajectory(dataWind,"red");
+
+
+
+		 
+
+				
+
+	</script>
+	
+			
+
+
+	</svg>
+
+	
+</p>
+</body>
+</html>
