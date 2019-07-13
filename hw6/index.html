@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HW6</title>
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<style>
+		#controls{
+			width: 300px;
+			height:500px;
+			float:right;
+		}
+	</style>
+</head>
+<body>
+	<p>
+		Problem 1:
+	<div id = "div1" width="500" height="500">
+		<svg id = "probA" width="500" height="500"></svg>
+	</div>
+	
+	<p>Hue Value: 
+		<span id="HueValue">220</span>
+	</p>
+    <input id="HueSlider" type="range" min="0" max="360" value="220" 
+    onchange="showHueValue(this.value);"/>
+	<p>
+	
+		<script type="text/javascript">
+			var array = [];
+			var x = 30; var y = 30; var r = 20;
+			for (var i = 0; i <= 100; i += 10) {
+				for (var j = 0; j <= 100; j += 10){
+					let obj = {saturation : i, lightness : j, x : x, y : y};
+					array.push(obj);
+					x += 40;
+				}
+				x = 30;
+				y += 40;
+			}
+
+			function showCircles(hue) {
+				//console.log("hue:"+hue);
+				var grid = d3.select("#div1").select("#probA");
+			
+      			var circles = grid.selectAll("circle").data(array);
+      							    						
+      				circles.enter() 
+      					   .append("circle")
+    					   .attr("class","circles")
+      					   .attr("cx",d=>d.x)
+      					   .attr("cy",d=>d.y)
+      					   .attr("r", 20)
+      					   .merge(circles)
+      					   .style("fill",function(d){
+      							return d3.hsl(hue,d.saturation/100,d.lightness/100);
+                			})
+      					   .style("stroke-width","1px")
+      					   .style("stroke","gray");
+      			
+      		}
+      		showCircles(220);
+      		function showHueValue(newValue) {
+        		document.getElementById("HueValue").innerHTML = newValue;
+        		showCircles(newValue);
+    		}
+    
+		</script>
+	</p>
+	</p>
+	<!--- Copy this segment of code into your homework --->
+
+	<p>Problem 2:</p>
+
+	<svg id="container" width="800" height="437">
+	 <foreignObject width="800" height="437" y="0" x="0">
+	   <!--- Foreign object allows us to nest HTML inside an SVG --->
+	   <!--- It can get pretty hacky, so use at your own risk --->
+	   <canvas id="painting" width="800" height="437"></canvas>
+	 </foreignObject>
+	 <g id="brush"></g>
+	</svg>
+	<br/>
+	<svg width="800" height="100">
+	  <rect id="color" x="0" y="0" width="800" height="100" fill="white" />
+	  <text id="label" x="20" y="80" />
+	</svg>
+
+	<script>
+
+	// Some helper variables for you to use -- do not modify or helper functions will fail
+	var canvas = d3.select("#painting");
+	var gfxContext = canvas.node().getContext("2d");
+	var imgWidth = canvas.node().width;
+	var imgHeight = canvas.node().height;
+
+	var img = new Image;
+	img.src = "nighthawks.png"
+	img.onload = imgLoaded;
+
+	function imgLoaded() {
+	  gfxContext.drawImage(this, 0, 0); // Paint image to canvas
+
+	  // pixels is a 2-d array containing RGB data for the whole image
+	  //  for example:  pixels[155][22] will tell give you a dict for the RGB values at point x=22, y=155
+	  //              (note that y position comes first, then x position)
+	  //              R, G, and B values start at 0 and run to 255
+	  let pixels = getAllPixels();
+
+	  // ----- All of your code for this problem must go between these comments -----
+	  // Make use of the g#brush group inside of the SVG element for placing your brush
+	  // Make use of the #color and #label elements for your average color and text label
+	  
+	  var brush = d3.brush().extent([[0,0],[imgWidth,imgHeight]]).on("brush end",brushed);
+
+
+	  function brushed() {
+	  	var s = d3.event.selection,
+      		x0 = Math.round(s[0][0]),
+     	 	y0 = Math.round(s[0][1]),
+     	 	x1 = Math.round(s[1][0]),
+     	 	y1 = Math.round(s[1][1]);
+     	var totalR = 0,
+     		totalG = 0,
+     		totalB = 0;
+     	for (var x = x0; x <= x1; x ++) {
+     	 	for (var y = y0; y <= y1; y ++) {
+     	 		totalR += pixels[y][x].r;
+     	 		totalG += pixels[y][x].g;
+     	 		totalB += pixels[y][x].b;   	 		
+     	 	}
+     	 }
+     	var totalPixels = (x1 - x0 + 1)*(y1 - y0 + 1);
+     	var R = Math.round(totalR/totalPixels),
+     	 	 G = Math.round(totalG/totalPixels),
+     	 	 B = Math.round(totalB/totalPixels);
+     	var color = d3.rgb(R,G,B);
+     	var averageColor = d3.lab(color);
+     	var textColor;
+     	if (averageColor.l < 50)
+     		textColor = "white";
+     	else 
+     		textColor = "black";
+  		d3.select("#label").text(color.hex(averageColor)).attr("fill",textColor);
+     	d3.select("#color").attr("fill",averageColor);
+    	
+
+	  }
+	  
+	  d3.select("g#brush").call(brush);
+
+
+	  
+
+
+
+	  // ----- All of your code for this problem must go between these comments -----
+
+	}
+
+	function getAllPixels() {
+
+	  let gfxData = gfxContext.getImageData(0,0,imgWidth,imgHeight).data;
+	  let processedData = [];
+	  for (let i=0; i<gfxData.length; i=i+4) { // contains stripe of RGBARGBARGBA
+	    let xCoord = Math.floor(i/4) % imgWidth;
+	    let yCoord = Math.floor(i/(imgWidth*4))
+	    if (xCoord === 0) { processedData.push( [] ); }
+	    processedData[processedData.length-1].push( {
+	      x: xCoord,
+	      y: yCoord,
+	      r: gfxData[i],
+	      g: gfxData[i+1],
+	      b: gfxData[i+2]
+	    } );
+	  }
+	  return processedData;
+
+	}
+
+
+	</script>
+
+	<!--- End segment of code for your homework --->
+
+
+</body>
+</html>
+
